@@ -27,7 +27,12 @@
     data = data || {};
     method = method || '';
     callback = callback || function(){};
-    
+
+    //Check to see if we have Date.now available, if not shim it for older browsers
+    if(!Date.now){
+      Date.now = function() { return new Date().getTime(); };
+    }
+
     //Gets all the keys that belong
     //to an object
     var getKeys = function(obj){
@@ -36,7 +41,7 @@
         if (obj.hasOwnProperty(key)) {
           keys.push(key);
         }
-        
+
       }
       return keys;
     }
@@ -45,11 +50,11 @@
     //Add check to see if the second parameter is indeed
     //a data object. If not, keep the default behaviour
     if(typeof data == 'object'){
-      var queryString = '';
+      var queryString = '_=' + Date.now() + '&'; // _ will carry a timestamp, for cache busting
       var keys = getKeys(data);
       for(var i = 0; i < keys.length; i++){
         queryString += encodeURIComponent(keys[i]) + '=' + encodeURIComponent(data[keys[i]])
-        if(i != keys.length - 1){ 
+        if(i != keys.length - 1){
           queryString += '&';
         }
       }
@@ -66,14 +71,10 @@
       callback = method;
       method = 'callback';
     }
-  
-    //Check to see if we have Date.now available, if not shim it for older browsers
-    if(!Date.now){
-      Date.now = function() { return new Date().getTime(); };
-    }
+
 
     //Use timestamp + a random factor to account for a lot of requests in a short time
-    //e.g. jsonp1394571775161 
+    //e.g. jsonp1394571775161
     var timestamp = Date.now();
     var generatedFunction = 'jsonp'+Math.round(timestamp+Math.random()*1000001)
 
@@ -91,7 +92,7 @@
     //example2: url = http://url.com?example=param THEN http://url.com?example=param&callback=X
     if(url.indexOf('?') === -1){ url = url+'?'; }
     else{ url = url+'&'; }
-  
+
     //This generates the <script> tag
     var jsonpScript = document.createElement('script');
     jsonpScript.setAttribute("src", url+method+'='+generatedFunction);
